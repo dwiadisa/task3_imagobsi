@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+  </head>
+  <body>
+    <!-- As a link -->
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">FEEDBACK</a>
+      </div>
+    </nav>
+
+    <div class="container mt-5">
+      <div class="card container">
+        <h1>Feedback Form</h1>
+        <!-- <div class="card-body">This is some text within a card body.</div>-->
+        <form id="feedback-form">
+          <div class="mb-3">
+            <label for="name" class="form-label">Nama</label>
+            <input type="text" class="form-control" id="name" name="name" />
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" />
+          </div>
+          <div class="mb-3">
+            <label for="comment" class="form-label">Komentar</label>
+            <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="container mt-5">
+      <div id="feedback-list"></div>
+    </div>
+
+    <!-- JQUERY -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <!-- Toastify -->
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- GET FEEDBACK API REQUEST  -->
+    <script>
+      $(document).ready(function () {
+        var settings = {
+          url: "http://127.0.0.1:8000/feedback",
+          method: "GET",
+          timeout: 0,
+          headers: {
+            Cookie:
+              "XSRF-TOKEN=eyJpdiI6IlE2ZXlqcDdVWDRjby9qMnp6ZG9vMUE9PSIsInZhbHVlIjoieDVjN3JxRy9DZlhzdC81ejZLNHV5MFdLSlhWOUkyNWF4ZXRZVDdkSHV2eWRSQkUzMHRFUmpCUGpURDVuNE9zRzRublA2cy9BNGMyM2IrRlhFb1lvNWtiNFdYNFduVXh0a3RIc081NlR0NGVTSXdHb3Y2NTZVQkNUNVlobVJ5TWMiLCJtYWMiOiIzYjQ1MmE1NzNkODBkMmVhZDc2NzdlMDI5YzU0ZWU5YWJkOTQxZGY3YjcxZTY0YzNiYjQ4OGYzNTg3Y2Y5NDFiIiwidGFnIjoiIn0%3D; laravel-session=eyJpdiI6InR6OGFyczdHR0RKbGh4dThCcnljakE9PSIsInZhbHVlIjoiemQ3YWx5K0wzY3FaNy9sb0NMWjdZSFc3UURzREJWMWtFMlh1K1pyK2NXaXRpcWhMNFZYcU9RMHNKd0R6RHZhOFhobHd2dXNJOFo0eHBkSWpOYzdmVHF2bkpQRlRLYlVUN0NBRmlNSXVxSUhveDhTNlIxR0FzSVpibzY1dzUxL0oiLCJtYWMiOiI0OTExMWI0NDJiNzU4NzdlMmNiZmY0ODdiZjFmOWE2NTQ0NGJlNzg0MDk2YTg2MzAwM2U5ZDJjNDQxY2ExOGZmIiwidGFnIjoiIn0%3D",
+          },
+        };
+
+        $.ajax(settings).done(function (response) {
+          var html = "";
+          if (response.success && Array.isArray(response.data)) {
+            response.data.forEach(function (item) {
+              html += '<div class="card mb-2">';
+              html += '<div class="card-body">';
+              html += '<h5 class="card-title">' + (item.name || "Anonim") + "</h5>";
+              html += '<h6 class="card-subtitle mb-2 text-muted">' + (item.email || "-") + "</h6>";
+              html += '<p class="card-text">' + (item.comment || "") + "</p>";
+              html += "</div></div>";
+            });
+          } else {
+            html = '<div class="alert alert-warning">No feedback found.</div>';
+          }
+          $("#feedback-list").html(html);
+        });
+      });
+    </script>
+    <script>
+      $("#feedback-form").on("submit", function (e) {
+        e.preventDefault();
+        var name = $("#name").val().trim();
+        var email = $("#email").val().trim();
+        var comment = $("#comment").val().trim();
+
+        if (!name || !email || !comment) {
+          Toastify({
+            text: "Semua field wajib diisi!",
+            backgroundColor: "#dc3545",
+            duration: 3000,
+          }).showToast();
+          return;
+        }
+
+        var form = new FormData();
+        form.append("name", name);
+        form.append("email", email);
+        form.append("comment", comment);
+
+        var settings = {
+          url: "http://127.0.0.1:8000/feedback",
+          method: "POST",
+          timeout: 0,
+          headers: {
+            Cookie:
+              "XSRF-TOKEN=eyJpdiI6Im1IMndCOFZ3Y3lFSnNka042Y2NsY1E9PSIsInZhbHVlIjoibWFoN0VDM0VFLzZXaXE3SFc3cmo3OGhLbUsyblRKWklTWmNFNTB1WWxXK25CUm9LZ2ZHZlNDSm00OXNXeEhvVzhXMnViL0EyZnJlRkZxaXJNUlZjeXQya1ZQZ2RObmo1NXhBZEdNVWt2Q2NiZXB4Nkw2N0oxUFM4djgrSUFNVW0iLCJtYWMiOiJkZTJmM2U0NjQ5MTMwY2M5ZDQyMzMwNjU2ODVhZTczYmEzN2M4NzRjM2ViNzhlMjliMDZhMzliMDg0NTk1ZTdkIiwidGFnIjoiIn0%3D; laravel-session=eyJpdiI6IlpMa1FkYTBjMzdwVllLdExFdFBCVlE9PSIsInZhbHVlIjoieGwzeTBqS2xIcGJwRFNQdWNYZ1lnS2hTL1ZMR3dRUXk1bVVUdGNHNnF5bG1WS21OOElMRmRpamdYVTdpVjhBUm1yOUpiU1dRQlp6RWpMbk9LbzgvQWpZMzR6dWZBTnpySGhhRTFaSWJPdVJ1bkZrTjZjTU1ld2JqMjc1c3hLc1kiLCJtYWMiOiJiMWNlN2U2MWVmNDZiMmMzOWYyYzA5Zjk2NWM3OGUzN2M4YTRmZTVlYTJmMjAyN2IwNzFmMzJkODA0M2UzZjYzIiwidGFnIjoiIn0%3D",
+          },
+          processData: false,
+          mimeType: "multipart/form-data",
+          contentType: false,
+          data: form,
+        };
+
+        $.ajax(settings)
+          .done(function (response) {
+            try {
+              var res = typeof response === "string" ? JSON.parse(response) : response;
+              if (res.success && res.data) {
+                Toastify({
+                  text: res.message || "Feedback berhasil dikirim!",
+                  backgroundColor: "#198754",
+                  duration: 3000,
+                }).showToast();
+
+                var item = res.data;
+                var html = '<div class="card mb-2">';
+                html += '<div class="card-body">';
+                html += '<h5 class="card-title">' + (item.name || "Anonim") + "</h5>";
+                html += '<h6 class="card-subtitle mb-2 text-muted">' + (item.email || "-") + "</h6>";
+                html += '<p class="card-text">' + (item.comment || "") + "</p>";
+                html += "</div></div>";
+                $("#feedback-list").prepend(html);
+
+                $("#feedback-form")[0].reset();
+              } else {
+                Toastify({
+                  text: res.message || "Gagal mengirim feedback.",
+                  backgroundColor: "#dc3545",
+                  duration: 3000,
+                }).showToast();
+              }
+            } catch (err) {
+              Toastify({
+                text: "Terjadi kesalahan pada server.",
+                backgroundColor: "#dc3545",
+                duration: 3000,
+              }).showToast();
+            }
+          })
+          .fail(function (xhr) {
+            Toastify({
+              text: "Gagal mengirim feedback.",
+              backgroundColor: "#dc3545",
+              duration: 3000,
+            }).showToast();
+          });
+      });
+    </script>
+    <!-- POST FEEDBACK -->
+  </body>
+</html>
